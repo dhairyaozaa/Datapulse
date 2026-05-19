@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DataPulse — Upload & Visualize</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,300&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/main.css"/>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ══ HEADER ══ -->
+<header class="header">
+  <div class="header-inner">
+    <a class="brand" href="/" aria-label="DataPulse home">
+      <span class="brand-hex" aria-hidden="true">⬡</span>
+      <span class="brand-name">DataPulse</span>
+    </a>
+    <div class="header-right">
+      <div class="api-pill" id="apiPill" role="status" aria-live="polite">
+        <span class="api-dot" id="apiDot"></span>
+        <span id="apiLabel">connecting…</span>
+      </div>
+      <button class="icon-btn" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">◑</button>
+    </div>
+  </div>
+</header>
+
+<!-- ══ UPLOAD SCREEN ══ -->
+<div id="screenUpload" class="screen">
+  <div class="upload-grid">
+
+    <div class="upload-copy">
+      <p class="eyebrow">Understand any file</p>
+      <h1 class="hero-title">Drop data.<br/><em>See meaning.</em></h1>
+      <p class="hero-body">Upload any spreadsheet, document or data file. Your backend reads and analyses it instantly — nothing leaves your machine.</p>
+      <div class="fmt-row" aria-label="Supported formats">
+        <span class="fmt">CSV</span><span class="fmt">XLSX</span><span class="fmt">XLS</span>
+        <span class="fmt">JSON</span><span class="fmt">PDF</span><span class="fmt">TXT</span><span class="fmt">DOCX</span>
+      </div>
+      <p class="backend-note">
+        <span class="bn-dot" aria-hidden="true">⬡</span>
+        Backend on <code>localhost:8000</code>
+      </p>
+    </div>
+
+    <!-- Drop zone -->
+    <div class="dropzone" id="dropZone" role="button" tabindex="0" aria-label="Drop a file or click to browse">
+      <input type="file" id="fileInput" class="file-hidden"
+             accept=".csv,.xlsx,.xls,.json,.pdf,.txt,.doc,.docx"/>
+
+      <div class="dz-panel" id="panelIdle">
+        <div class="dz-icon">
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none" aria-hidden="true">
+            <polygon points="26,3 49,15 49,37 26,49 3,37 3,15" stroke="currentColor" stroke-width="1.5" fill="none" opacity=".25"/>
+            <polygon points="26,10 43,20 43,32 26,42 9,32 9,20" stroke="currentColor" stroke-width="1" fill="none" opacity=".45"/>
+            <path d="M26 19v14M19 26l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <p class="dz-title">Drop your file here</p>
+        <p class="dz-sub">or <button class="link-btn" id="browseBtn">browse files</button></p>
+        <p class="dz-formats">CSV · XLSX · JSON · PDF · TXT · DOCX — up to 50 MB</p>
+      </div>
+
+      <div class="dz-panel" id="panelLoading" style="display:none">
+        <div class="dz-spinner" aria-hidden="true"></div>
+        <p class="dz-title" id="loadingMsg">Uploading…</p>
+        <div class="prog-wrap" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+          <div class="prog-fill" id="progFill"></div>
+        </div>
+        <p class="prog-pct" id="progPct">0%</p>
+      </div>
+
+      <div class="dz-panel" id="panelError" style="display:none" role="alert">
+        <div class="dz-icon error-col">⚠</div>
+        <p class="dz-title" id="errorMsg">Something went wrong.</p>
+        <button class="pill-btn" id="retryBtn">Try again</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div id="screenDash" class="screen" style="display:none">
+
+  <div class="dash-topbar">
+    <div class="file-pill" id="filePill">
+      <span class="fp-hex" aria-hidden="true">⬡</span>
+      <span class="fp-name" id="fpName"></span>
+      <span class="fp-shape" id="fpShape"></span>
+    </div>
+    <button class="pill-btn outline" id="newFileBtn">↑ New file</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-row" id="kpiRow" role="list" aria-label="File statistics"></div>
+
+  <!-- Insights -->
+  <div class="insight-strip" id="insightStrip" style="display:none">
+    <span class="insight-label">◈ Insights</span>
+    <ul class="insight-list" id="insightList"></ul>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar" role="tablist">
+    <button class="tab active" id="tabCharts"  role="tab" aria-selected="true"  aria-controls="panelCharts">Charts</button>
+    <button class="tab"        id="tabCols"    role="tab" aria-selected="false" aria-controls="panelCols">Columns</button>
+    <button class="tab"        id="tabPreview" role="tab" aria-selected="false" aria-controls="panelPreview">Preview</button>
+  </div>
+
+  <div id="panelCharts" role="tabpanel">
+    <div class="charts-grid" id="chartsGrid"></div>
+    <p class="empty-msg" id="noCharts" style="display:none">No charts could be generated for this file.</p>
+  </div>
+
+  <div id="panelCols" role="tabpanel" style="display:none">
+    <div class="col-grid" id="colGrid"></div>
+  </div>
+
+  <div id="panelPreview" role="tabpanel" style="display:none">
+    <p class="preview-note" id="previewNote"></p>
+    <div class="table-wrap" tabindex="0">
+      <table class="data-table"><thead id="tHead"></thead><tbody id="tBody"></tbody></table>
+    </div>
+  </div>
+
+</div>
+
+<div class="tooltip" id="tooltip" role="tooltip" aria-hidden="true"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/api.js"></script>
+<script src="js/upload.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
